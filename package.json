@@ -1,0 +1,51 @@
+{
+  "name": "medical-insurance-reconciliation",
+  "version": "1.0.0",
+  "description": "医保对账差异语义聚类分析器",
+  "main": "dist/index.js",
+  "bin": {
+    "reconcile": "./bin/reconcile"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts",
+    "test": "jest",
+    "reconcile": "node dist/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "files": [
+    "dist/",
+    "bin/",
+    "src/",
+    "templates/",
+    "data/",
+    "config/",
+    "README.md",
+    "tsconfig.json",
+    ".gitignore",
+    ".env.example",
+    "buymeacoffee.png"
+  ],
+  "devDependencies": {
+    "@types/chalk": "^0.4.31",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^25.5.0",
+    "jest": "^30.3.0",
+    "ts-jest": "^29.4.9",
+    "ts-node": "^10.9.2",
+    "typescript": "^6.0.2"
+  },
+  "dependencies": {
+    "@types/papaparse": "^5.5.2",
+    "axios": "^1.14.0",
+    "chalk": "^5.6.2",
+    "commander": "^14.0.3",
+    "dotenv": "^17.4.0",
+    "papaparse": "^5.5.3",
+    "xlsx": "^0.18.5"
+  }
+}

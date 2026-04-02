@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log
+
+# Runtime data
+data/*.csv
+data/*.xlsx
+output/
+*.tmp
+*.temp
+
+# Cache
+__pycache__/
+*.pyc
+*.pyo
+.cache/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+coverage/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Project-specific (round metadata)
+score.json

@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>医保对账差异分析报告</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
+      background: #f5f7fa;
+      color: #333;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    /* 头部 */
+    .report-header {
+      background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%);
+      color: white;
+      padding: 30px;
+      border-radius: 12px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 12px rgba(26, 115, 232, 0.3);
+    }
+
+    .report-header h1 {
+      font-size: 28px;
+      margin-bottom: 8px;
+    }
+
+    .report-header .subtitle {
+      opacity: 0.9;
+      font-size: 14px;
+    }
+
+    .report-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      margin-top: 16px;
+      font-size: 13px;
+      opacity: 0.9;
+    }
+
+    .report-meta span {
+      display: flex;
+      align-items: center;
+    }
+
+    /* 卡片 */
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    .card-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #1a73e8;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid #e8f0fe;
+    }
+
+    /* 统计摘要 */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .stat-item {
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    .stat-value {
+      font-size: 32px;
+      font-weight: 700;
+      color: #1a73e8;
+    }
+
+    .stat-value.danger {
+      color: #d93025;
+    }
+
+    .stat-value.warning {
+      color: #f9ab00;
+    }
+
+    .stat-value.success {
+      color: #1e8e3e;
+    }
+
+    .stat-label {
+      font-size: 14px;
+      color: #666;
+      margin-top: 4px;
+    }
+
+    /* 图表容器 */
+    .charts-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .charts-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .chart-container {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    .chart-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 16px;
+    }
+
+    .chart-wrapper {
+      position: relative;
+      height: 280px;
+    }
+
+    /* 表格 */
+    .table-container {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    th {
+      background: #f8f9fa;
+      padding: 12px 16px;
+      text-align: left;
+      font-weight: 600;
+      color: #333;
+      border-bottom: 2px solid #e8f0fe;
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 12px 16px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    tr:hover {
+      background: #f8f9fa;
+    }
+
+    .amount-positive {
+      color: #d93025;
+      font-weight: 600;
+    }
+
+    .amount-negative {
+      color: #1e8e3e;
+      font-weight: 600;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .badge-danger {
+      background: #fce8e6;
+      color: #c5221f;
+    }
+
+    .badge-warning {
+      background: #fef7e0;
+      color: #e37400;
+    }
+
+    .badge-success {
+      background: #e6f4ea;
+      color: #1e8e3e;
+    }
+
+    .badge-info {
+      background: #e8f0fe;
+      color: #1a73e8;
+    }
+
+    /* 分页 */
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      margin-top: 20px;
+    }
+
+    .pagination button {
+      padding: 8px 16px;
+      border: 1px solid #ddd;
+      background: white;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .pagination button:hover:not(:disabled) {
+      background: #e8f0fe;
+      border-color: #1a73e8;
+    }
+
+    .pagination button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .pagination .page-info {
+      padding: 8px 16px;
+      color: #666;
+      font-size: 14px;
+    }
+
+    /* 聚类卡片 */
+    .cluster-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 16px;
+    }
+
+    .cluster-card {
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+      border-left: 4px solid #1a73e8;
+    }
+
+    .cluster-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .cluster-card-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #1a73e8;
+    }
+
+    .cluster-card-badge {
+      background: #e8f0fe;
+      color: #1a73e8;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .cluster-stats {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 12px;
+      font-size: 14px;
+      color: #666;
+    }
+
+    .cluster-stats strong {
+      color: #333;
+    }
+
+    .cluster-description {
+      font-size: 14px;
+      color: #555;
+      margin-bottom: 12px;
+      line-height: 1.6;
+    }
+
+    .cluster-action {
+      font-size: 13px;
+      color: #1a73e8;
+      background: #e8f0fe;
+      padding: 8px 12px;
+      border-radius: 6px;
+      margin-bottom: 12px;
+    }
+
+    .cluster-cases {
+      border-top: 1px solid #eee;
+      padding-top: 12px;
+    }
+
+    .cluster-cases-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #666;
+      margin-bottom: 8px;
+    }
+
+    .cluster-case {
+      font-size: 13px;
+      color: #555;
+      padding: 6px 0;
+      border-bottom: 1px dashed #f0f0f0;
+    }
+
+    .cluster-case:last-child {
+      border-bottom: none;
+    }
+
+    .cluster-card-content {
+      max-height: 2000px;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+
+    .cluster-card-content.collapsed {
+      max-height: 0;
+    }
+
+    .cluster-card-header .toggle-icon {
+      display: inline-block;
+      transition: transform 0.2s;
+    }
+
+    /* 附录 */
+    .appendix-table {
+      width: 100%;
+      font-size: 13px;
+    }
+
+    .appendix-table th {
+      background: #f8f9fa;
+    }
+
+    .appendix-table td {
+      padding: 8px 12px;
+    }
+
+    /* 折叠 */
+    .collapsible {
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .collapsible::after {
+      content: "▼";
+      font-size: 12px;
+      margin-left: 8px;
+      transition: transform 0.2s;
+    }
+
+    .collapsible.collapsed::after {
+      transform: rotate(-90deg);
+    }
+
+    .collapsible-content {
+      max-height: 500px;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+
+    .collapsible-content.collapsed {
+      max-height: 0;
+    }
+
+    /* 页脚 */
+    .report-footer {
+      text-align: center;
+      padding: 20px;
+      color: #999;
+      font-size: 13px;
+    }
+
+    /* 响应式 */
+    @media (max-width: 640px) {
+      .container {
+        padding: 12px;
+      }
+
+      .report-header {
+        padding: 20px;
+      }
+
+      .report-header h1 {
+        font-size: 22px;
+      }
+
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .stat-value {
+        font-size: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- 报告头部 -->
+    <div class="report-header">
+      <h1>🏥 医保对账差异语义分析报告</h1>
+      <div class="subtitle">Medical Insurance Reconciliation - Semantic Difference Analysis</div>
+      <div class="report-meta">
+        <span>📁 HIS文件: <strong id="his-file"></strong></span>
+        <span>📁 医保文件: <strong id="insurance-file"></strong></span>
+        <span>📅 执行时间: <strong id="executed-at"></strong></span>
+        <span>⚡ 执行耗时: <strong id="execution-time"></strong></span>
+        <span>🔧 模式: <strong id="recon-mode"></strong></span>
+      </div>
+    </div>
+
+    <!-- 统计摘要 -->
+    <div class="stats-grid">
+      <div class="stat-item">
+        <div class="stat-value" id="total-records">-</div>
+        <div class="stat-label">总记录数 (HIS)</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value success" id="matched-count">-</div>
+        <div class="stat-label">完全匹配</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value warning" id="amount-diff-count">-</div>
+        <div class="stat-label">金额差异</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value danger" id="his-only-count">-</div>
+        <div class="stat-label">HIS独有</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value danger" id="insurance-only-count">-</div>
+        <div class="stat-label">医保独有</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value danger" id="total-diff-amount">-</div>
+        <div class="stat-label">总差异金额 (元)</div>
+      </div>
+    </div>
+
+    <!-- 图表区域 -->
+    <div class="charts-row">
+      <div class="chart-container">
+        <div class="chart-title">📊 差异类型分布</div>
+        <div class="chart-wrapper">
+          <canvas id="diffTypeChart"></canvas>
+        </div>
+      </div>
+      <div class="chart-container">
+        <div class="chart-title">🏢 科室差异金额分布 (Top 10)</div>
+        <div class="chart-wrapper">
+          <canvas id="deptChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOP10 差异明细 -->
+    <div class="card">
+      <div class="card-title collapsible" onclick="toggleSection(this)">💰 TOP10 差异明细 (按金额降序)</div>
+      <div class="collapsible-content">
+        <div class="table-container">
+          <table id="top10-table">
+            <thead>
+              <tr>
+                <th>序号</th>
+                <th>患者ID</th>
+                <th>就诊日期</th>
+                <th>项目名称</th>
+                <th>HIS金额</th>
+                <th>医保金额</th>
+                <th>差异金额</th>
+                <th>差异类型</th>
+              </tr>
+            </thead>
+            <tbody id="top10-tbody">
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination" id="top10-pagination">
+        </div>
+      </div>
+    </div>
+
+    <!-- 完整差异明细 -->
+    <div class="card">
+      <div class="card-title collapsible" onclick="toggleSection(this)">📋 完整差异明细 (分页显示)</div>
+      <div class="collapsible-content">
+        <div class="table-container">
+          <table id="detail-table">
+            <thead>
+              <tr>
+                <th>序号</th>
+                <th>患者ID</th>
+                <th>就诊日期</th>
+                <th>项目编码</th>
+                <th>项目名称</th>
+                <th>HIS金额</th>
+                <th>医保金额</th>
+                <th>差异金额</th>
+                <th>类型</th>
+              </tr>
+            </thead>
+            <tbody id="detail-tbody">
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination" id="detail-pagination">
+        </div>
+      </div>
+    </div>
+
+    <!-- 语义聚类对比图 -->
+    <div class="card" id="cluster-comparison-section" style="display: none;">
+      <div class="card-title collapsible" onclick="toggleSection(this)">📊 语义聚类金额对比</div>
+      <div class="collapsible-content">
+        <div class="chart-wrapper" style="height: 200px;">
+          <canvas id="clusterComparisonChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- 语义聚类结果 -->
+    <div class="card" id="cluster-section" style="display: none;">
+      <div class="card-title collapsible" onclick="toggleSection(this)">🔍 语义聚类分析结果 (<span id="cluster-count">0</span> 个类别)</div>
+      <div class="collapsible-content">
+        <div class="cluster-grid" id="cluster-grid">
+        </div>
+      </div>
+    </div>
+
+    <!-- 附录 -->
+    <div class="card">
+      <div class="card-title collapsible" onclick="toggleSection(this)">📖 附录：差异类型说明</div>
+      <div class="collapsible-content">
+        <table class="appendix-table">
+          <thead>
+            <tr>
+              <th>差异类型</th>
+              <th>说明</th>
+              <th>可能原因</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="badge badge-danger">HIS高套</span></td>
+              <td>HIS计费金额大于医保认定金额</td>
+              <td>过度检查、药品规格不符、手术操作编码错误等</td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-warning">医保低付</span></td>
+              <td>医保克扣/拒付部分费用</td>
+              <td>医嘱与病历记载不符、无适应症用药、限制性用药等</td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-info">数量差异</span></td>
+              <td>计费数量与医嘱或实际执行数量不一致</td>
+              <td>退费未及时操作、计费时间差、医嘱变更等</td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-info">系统口径差</span></td>
+              <td>因编码映射导致的系统差异</td>
+              <td>HIS自定义编码与医保国家编码映射不一致</td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-success">手工冲销</span></td>
+              <td>冲正/冲销操作产生的差异</td>
+              <td>退费操作、结算错误修正等</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 页脚 -->
+    <div class="report-footer">
+      <p>本报告由 <strong>医保对账差异语义聚类分析器</strong> 自动生成</p>
+      <p>生成时间: <span id="generated-at"></span> | Mock模式: <span id="is-mock"></span></p>
+    </div>
+  </div>
+
+  <script>
+    // 全局图表实例
+    let diffTypeChart = null;
+    let deptChart = null;
+    let clusterComparisonChart = null;
+
+    // 分页状态
+    const PAGE_SIZE = 20;
+    let detailCurrentPage = 1;
+    let detailTotalPages = 0;
+    let allDiffRecords = [];
+
+    /**
+     * 格式化金额
+     */
+    function formatCurrency(amount) {
+      return parseFloat(amount).toFixed(2) + ' 元';
+    }
+
+    /**
+     * 格式化日期
+     */
+    function formatDate(dateStr) {
+      if (!dateStr) return '-';
+      return dateStr;
+    }
+
+    /**
+     * 获取差异类型标签
+     */
+    function getDiffTypeBadge(type) {
+      const badges = {
+        'his_overcharge': '<span class="badge badge-danger">HIS高套</span>',
+        'insurance_underpay': '<span class="badge badge-warning">医保低付</span>',
+        'quantity_diff': '<span class="badge badge-info">数量差异</span>',
+        'system口径差': '<span class="badge badge-info">系统口径差</span>',
+        'manual_reverse': '<span class="badge badge-success">手工冲销</span>',
+        'matched': '<span class="badge badge-success">完全匹配</span>',
+        'unknown': '<span class="badge badge-info">未知</span>',
+      };
+      return badges[type] || '<span class="badge badge-info">' + type + '</span>';
+    }
+
+    /**
+     * 脱敏患者ID
+     */
+    function maskPatientId(patientId) {
+      if (!patientId) return '-';
+      if (patientId.length <= 4) return '****';
+      return '****' + patientId.slice(-4);
+    }
+
+    /**
+     * 折叠/展开区块
+     */
+    function toggleSection(element) {
+      element.classList.toggle('collapsed');
+      const content = element.nextElementSibling;
+      content.classList.toggle('collapsed');
+    }
+
+    /**
+     * 渲染差异类型分布饼图
+     */
+    function renderDiffTypeChart(stats) {
+      const ctx = document.getElementById('diffTypeChart').getContext('2d');
+
+      const labels = [];
+      const data = [];
+      const colors = [];
+
+      const colorMap = {
+        'his_overcharge': '#d93025',
+        'insurance_underpay': '#f9ab00',
+        'quantity_diff': '#1a73e8',
+        'system口径差': '#9c27b0',
+        'manual_reverse': '#1e8e3e',
+        'matched': '#34a853',
+        'unknown': '#9e9e9e',
+      };
+
+      const nameMap = {
+        'his_overcharge': 'HIS高套',
+        'insurance_underpay': '医保低付',
+        'quantity_diff': '数量差异',
+        'system口径差': '系统口径差',
+        'manual_reverse': '手工冲销',
+        'matched': '完全匹配',
+        'unknown': '未知类型',
+      };
+
+      for (const [key, value] of Object.entries(stats)) {
+        if (value > 0) {
+          labels.push(nameMap[key] || key);
+          data.push(value);
+          colors.push(colorMap[key] || '#9e9e9e');
+        }
+      }
+
+      if (diffTypeChart) {
+        diffTypeChart.destroy();
+      }
+
+      diffTypeChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: data,
+            backgroundColor: colors,
+            borderWidth: 0,
+            hoverOffset: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'right',
+              labels: {
+                padding: 15,
+                usePointStyle: true,
+                pointStyle: 'circle'
+              }
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                  const percentage = ((context.raw / total) * 100).toFixed(1);
+                  return `${context.label}: ${context.raw} 条 (${percentage}%)`;
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    /**
+     * 渲染科室分布柱状图
+     */
+    function renderDeptChart(records) {
+      const ctx = document.getElementById('deptChart').getContext('2d');
+
+      // 按科室聚合差异金额
+      const deptMap = new Map();
+      for (const record of records) {
+        if (record.alignStatus !== 'matched' && record.hisRecord) {
+          const dept = record.hisRecord.departmentName || '未知科室';
+          const amount = Math.abs(record.differenceAmount);
+          deptMap.set(dept, (deptMap.get(dept) || 0) + amount);
+        }
+      }
+
+      // 排序并取 Top 10
+      const sortedDepts = Array.from(deptMap.entries())
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10);
+
+      const labels = sortedDepts.map(d => d[0]);
+      const data = sortedDepts.map(d => parseFloat(d[1].toFixed(2)));
+
+      if (deptChart) {
+        deptChart.destroy();
+      }
+
+      deptChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: '差异金额 (元)',
+            data: data,
+            backgroundColor: 'rgba(26, 115, 232, 0.7)',
+            borderColor: '#1a73e8',
+            borderWidth: 1,
+            borderRadius: 4,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          indexAxis: 'y',
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return formatCurrency(context.raw);
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              beginAtZero: true,
+              ticks: {
+                callback: function(value) {
+                  return value.toLocaleString();
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    /**
+     * 渲染 TOP10 表格
+     */
+    function renderTop10Table(records) {
+      const tbody = document.getElementById('top10-tbody');
+      const top10 = records.slice(0, 10);
+
+      tbody.innerHTML = top10.map((record, index) => {
+        const hisAmt = record.hisRecord ? record.hisRecord.amount : 0;
+        const insAmt = record.insuranceRecord ? record.insuranceRecord.amount : 0;
+        const diffAmt = record.differenceAmount;
+
+        return `
+          <tr>
+            <td>${index + 1}</td>
+            <td>${maskPatientId(record.hisRecord?.patientId || record.insuranceRecord?.patientId)}</td>
+            <td>${formatDate(record.hisRecord?.visitDate || record.insuranceRecord?.visitDate)}</td>
+            <td>${record.hisRecord?.itemName || '-'}</td>
+            <td>${formatCurrency(hisAmt)}</td>
+            <td>${formatCurrency(insAmt)}</td>
+            <td class="${diffAmt >= 0 ? 'amount-positive' : 'amount-negative'}">${formatCurrency(diffAmt)}</td>
+            <td>${getDiffTypeBadge(record.preliminaryType || record.alignStatus)}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    /**
+     * 渲染完整差异明细表格
+     */
+    function renderDetailTable(page = 1) {
+      const tbody = document.getElementById('detail-tbody');
+      detailTotalPages = Math.ceil(allDiffRecords.length / PAGE_SIZE);
+      detailCurrentPage = Math.min(page, detailTotalPages);
+
+      const start = (detailCurrentPage - 1) * PAGE_SIZE;
+      const end = start + PAGE_SIZE;
+      const pageRecords = allDiffRecords.slice(start, end);
+
+      tbody.innerHTML = pageRecords.map((record, index) => {
+        const hisAmt = record.hisRecord ? record.hisRecord.amount : 0;
+        const insAmt = record.insuranceRecord ? record.insuranceRecord.amount : 0;
+        const diffAmt = record.differenceAmount;
+
+        return `
+          <tr>
+            <td>${start + index + 1}</td>
+            <td>${maskPatientId(record.hisRecord?.patientId || record.insuranceRecord?.patientId)}</td>
+            <td>${formatDate(record.hisRecord?.visitDate || record.insuranceRecord?.visitDate)}</td>
+            <td>${record.hisRecord?.itemCode || record.insuranceRecord?.itemCode || '-'}</td>
+            <td>${record.hisRecord?.itemName || '-'}</td>
+            <td>${formatCurrency(hisAmt)}</td>
+            <td>${formatCurrency(insAmt)}</td>
+            <td class="${diffAmt >= 0 ? 'amount-positive' : 'amount-negative'}">${formatCurrency(diffAmt)}</td>
+            <td>${getDiffTypeBadge(record.preliminaryType || record.alignStatus)}</td>
+          </tr>
+        `;
+      }).join('');
+
+      renderDetailPagination();
+    }
+
+    /**
+     * 渲染分页控件
+     */
+    function renderDetailPagination() {
+      const pagination = document.getElementById('detail-pagination');
+
+      if (detailTotalPages <= 1) {
+        pagination.innerHTML = '';
+        return;
+      }
+
+      let html = '';
+
+      html += `<button onclick="renderDetailTable(${detailCurrentPage - 1})" ${detailCurrentPage === 1 ? 'disabled' : ''}>上一页</button>`;
+      html += `<span class="page-info">第 ${detailCurrentPage} / ${detailTotalPages} 页</span>`;
+      html += `<button onclick="renderDetailTable(${detailCurrentPage + 1})" ${detailCurrentPage === detailTotalPages ? 'disabled' : ''}>下一页</button>`;
+
+      pagination.innerHTML = html;
+    }
+
+    /**
+     * 渲染语义聚类对比图表
+     */
+    function renderClusterComparisonChart(clusters) {
+      const comparisonSection = document.getElementById('cluster-comparison-section');
+      if (!clusters || clusters.length === 0) {
+        comparisonSection.style.display = 'none';
+        return;
+      }
+
+      comparisonSection.style.display = 'block';
+
+      const ctx = document.getElementById('clusterComparisonChart').getContext('2d');
+
+      // 按金额排序
+      const sortedClusters = [...clusters].sort((a, b) => b.totalAmount - a.totalAmount);
+
+      const labels = sortedClusters.map(c => c.categoryName);
+      const data = sortedClusters.map(c => parseFloat(c.totalAmount.toFixed(2)));
+
+      // 生成颜色
+      const colors = sortedClusters.map((_, i) => {
+        const hue = (i * 137.508) % 360;
+        return `hsla(${hue}, 70%, 60%, 0.8)`;
+      });
+
+      if (clusterComparisonChart) {
+        clusterComparisonChart.destroy();
+      }
+
+      clusterComparisonChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: '涉及金额 (元)',
+            data: data,
+            backgroundColor: colors,
+            borderColor: colors.map(c => c.replace('0.8', '1')),
+            borderWidth: 1,
+            borderRadius: 4,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  const cluster = sortedClusters[context.dataIndex];
+                  return [
+                    `涉及金额: ${formatCurrency(context.raw)}`,
+                    `记录数: ${cluster.recordCount} 条`
+                  ];
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                callback: function(value) {
+                  return value.toLocaleString();
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    /**
+     * 切换聚类卡片的折叠/展开状态
+     */
+    function toggleClusterCard(headerElement) {
+      const card = headerElement.closest('.cluster-card');
+      const content = card.querySelector('.cluster-card-content');
+      const toggleIcon = headerElement.querySelector('.toggle-icon');
+
+      if (content) {
+        content.classList.toggle('collapsed');
+        if (toggleIcon) {
+          toggleIcon.textContent = content.classList.contains('collapsed') ? '▶' : '▼';
+        }
+      }
+    }
+
+    /**
+     * 渲染语义聚类结果
+     */
+    function renderSemanticClusters(clusters) {
+      const section = document.getElementById('cluster-section');
+      const comparisonSection = document.getElementById('cluster-comparison-section');
+      const grid = document.getElementById('cluster-grid');
+      const clusterCountEl = document.getElementById('cluster-count');
+
+      if (!clusters || clusters.length === 0) {
+        section.style.display = 'none';
+        comparisonSection.style.display = 'none';
+        return;
+      }
+
+      section.style.display = 'block';
+      clusterCountEl.textContent = clusters.length;
+
+      // 渲染对比图表
+      renderClusterComparisonChart(clusters);
+
+      grid.innerHTML = clusters.map((cluster, index) => `
+        <div class="cluster-card" style="border-left-color: ${getClusterColor(index)};">
+          <div class="cluster-card-header" onclick="toggleClusterCard(this)" style="cursor: pointer;">
+            <div class="cluster-card-title">
+              <span class="toggle-icon" style="margin-right: 8px; font-size: 12px;">▼</span>
+              ${cluster.categoryName}
+            </div>
+            <div class="cluster-card-badge">${cluster.recordCount} 条</div>
+          </div>
+          <div class="cluster-card-content">
+            <div class="cluster-stats">
+              <span>涉及金额: <strong>${formatCurrency(cluster.totalAmount)}</strong></span>
+            </div>
+            ${cluster.attribution ? `<div class="cluster-description">📋 归因说明：${cluster.attribution}</div>` : ''}
+            ${cluster.suggestedAction ? `<div class="cluster-action">💡 建议处理：${cluster.suggestedAction}</div>` : ''}
+            ${cluster.typicalCases && cluster.typicalCases.length > 0 ? `
+              <div class="cluster-cases">
+                <div class="cluster-cases-title">典型案例（已脱敏）</div>
+                ${cluster.typicalCases.map(c => `
+                  <div class="cluster-case">
+                    👤 ${c.patientIdMasked || '****'} | 📅 ${c.visitDate} | 💰 ${formatCurrency(c.differenceAmount)}
+                    ${c.itemName ? ` | 📦 ${c.itemName}` : ''}
+                    ${c.briefDescription ? `<br>📝 ${c.briefDescription.substring(0, 80)}${c.briefDescription.length > 80 ? '...' : ''}` : ''}
+                  </div>
+                `).join('')}
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    /**
+     * 获取聚类颜色
+     */
+    function getClusterColor(index) {
+      const hue = (index * 137.508) % 360;
+      return `hsl(${hue}, 70%, 50%)`;
+    }
+
+    /**
+     * 主入口：注入数据并渲染报告
+     */
+    function injectData(result) {
+      // 头部信息
+      document.getElementById('his-file').textContent = result.hisFilePath || '-';
+      document.getElementById('insurance-file').textContent = result.insuranceFilePath || '-';
+      document.getElementById('executed-at').textContent = new Date(result.executedAt).toLocaleString('zh-CN');
+      document.getElementById('execution-time').textContent = result.executionTimeMs + ' ms';
+      document.getElementById('recon-mode').textContent = result.mode || '-';
+      document.getElementById('generated-at').textContent = new Date().toLocaleString('zh-CN');
+      document.getElementById('is-mock').textContent = result.isMockMode ? '是' : '否';
+
+      // 统计摘要
+      document.getElementById('total-records').textContent = result.totalHisRecords || 0;
+      document.getElementById('matched-count').textContent = result.matchedCount || 0;
+      document.getElementById('amount-diff-count').textContent = result.amountDiffCount || 0;
+      document.getElementById('his-only-count').textContent = result.hisOnlyCount || 0;
+      document.getElementById('insurance-only-count').textContent = result.insuranceOnlyCount || 0;
+      document.getElementById('total-diff-amount').textContent = (result.totalDifferenceAmount || 0).toLocaleString('zh-CN', {minimumFractionDigits: 2});
+
+      // 差异类型分布图
+      if (result.differenceTypeStats) {
+        renderDiffTypeChart(result.differenceTypeStats);
+      }
+
+      // 科室分布图
+      if (result.alignedRecords) {
+        renderDeptChart(result.alignedRecords);
+      }
+
+      // TOP10 表格
+      if (result.alignedRecords) {
+        const diffRecords = result.alignedRecords
+          .filter(r => r.alignStatus !== 'matched')
+          .sort((a, b) => Math.abs(b.differenceAmount) - Math.abs(a.differenceAmount));
+        renderTop10Table(diffRecords);
+      }
+
+      // 完整差异明细
+      if (result.alignedRecords) {
+        allDiffRecords = result.alignedRecords
+          .filter(r => r.alignStatus !== 'matched')
+          .sort((a, b) => Math.abs(b.differenceAmount) - Math.abs(a.differenceAmount));
+        renderDetailTable(1);
+      }
+
+      // 语义聚类结果
+      if (result.semanticClusters) {
+        renderSemanticClusters(result.semanticClusters);
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+# Source files - only publish compiled JS
+src/
+
+# Development files
+*.ts
+*.map
+tsconfig.json
+.npmignore
+
+# Test files
+*.test.ts
+*.spec.ts

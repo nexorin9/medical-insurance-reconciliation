@@ -1,0 +1,80 @@
+{
+  "description": "医保对账字段映射配置文件 - 将 HIS/医保平台的原始字段名映射到标准字段名",
+  "version": "1.0.0",
+  "his": {
+    "patientId": {
+      "standard": "patientId",
+      "aliases": ["patient_id", "患者ID", "patientid", "pat_id"]
+    },
+    "visitDate": {
+      "standard": "visitDate",
+      "aliases": ["visit_date", "就诊日期", "reg_date", "inhos_date"]
+    },
+    "itemCode": {
+      "standard": "itemCode",
+      "aliases": ["item_code", "项目编码", "charge_code", "fee_code", "code"]
+    },
+    "itemName": {
+      "standard": "itemName",
+      "aliases": ["item_name", "项目名称", "charge_name", "fee_name", "name"]
+    },
+    "quantity": {
+      "standard": "quantity",
+      "aliases": ["quantity", "数量", "qty", "num", "count"]
+    },
+    "amount": {
+      "standard": "amount",
+      "aliases": ["amount", "金额", "his_amount", "charge_amount", "fee_amount", "total"]
+    },
+    "departmentCode": {
+      "standard": "departmentCode",
+      "aliases": ["department_code", "科室编码", "dept_code", "deptno"]
+    },
+    "departmentName": {
+      "standard": "departmentName",
+      "aliases": ["department_name", "科室名称", "dept_name", "dept"]
+    },
+    "diagnosisCode": {
+      "standard": "diagnosisCode",
+      "aliases": ["diagnosis_code", "诊断编码", "icd_code", "disease_code"]
+    },
+    "diagnosisName": {
+      "standard": "diagnosisName",
+      "aliases": ["diagnosis_name", "诊断名称", "icd_name", "disease_name"]
+    },
+    "settlementNo": {
+      "standard": "settlementNo",
+      "aliases": ["settlement_no", "结算流水号", "trans_no", "bill_no", "invoice_no"]
+    }
+  },
+  "insurance": {
+    "patientId": {
+      "standard": "patientId",
+      "aliases": ["patient_id", "患者ID", "patientid", "insured_id", "card_no"]
+    },
+    "visitDate": {
+      "standard": "visitDate",
+      "aliases": ["visit_date", "就诊日期", "inhos_date", "treatment_date"]
+    },
+    "itemCode": {
+      "standard": "itemCode",
+      "aliases": ["item_code", "项目编码", "yibaocode", "med_code", "医保编码"]
+    },
+    "amount": {
+      "standard": "amount",
+      "aliases": ["amount", "申报金额", "apply_amount", "billing_amount"]
+    },
+    "payAmount": {
+      "standard": "payAmount",
+      "aliases": ["pay_amount", "实付金额", "paid_amount", "actual_pay", "医保支付"]
+    },
+    "rejectReason": {
+      "standard": "rejectReason",
+      "aliases": ["reject_reason", "拒付原因", "reject_msg", "deduct_reason", "扣款原因"]
+    },
+    "settlementNo": {
+      "standard": "settlementNo",
+      "aliases": ["settlement_no", "结算流水号", "trans_no", "bill_no", "正单号"]
+    }
+  }
+}

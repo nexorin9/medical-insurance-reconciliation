@@ -1,0 +1,26 @@
+#!/usr/bin/env node
+/**
+ * 医保对账差异语义聚类分析器 - CLI 入口脚本
+ *
+ * 此文件是 npm bin 入口，链接到 dist/index.js
+ * 在 TypeScript 编译后通过此脚本调用
+ */
+
+'use strict';
+
+const { execSync } = require('child_process');
+const path = require('path');
+
+// 获取 dist/index.js 的路径
+const distPath = path.resolve(__dirname, '..', 'dist', 'index.js');
+
+// 检查 dist/index.js 是否存在
+const fs = require('fs');
+if (!fs.existsSync(distPath)) {
+  console.error('错误: 编译产物 dist/index.js 不存在');
+  console.error('请先运行: npm run build');
+  process.exit(1);
+}
+
+// 执行编译后的 CLI
+require(distPath);

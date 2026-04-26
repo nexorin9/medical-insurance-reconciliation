@@ -1,38 +1,56 @@
-# Dependencies
-node_modules/
-
-# Build output
-dist/
-
-# Environment files
+# Environment and virtual environments
 .env
-.env.local
-.env.*.local
+.venv/
+venv/
+env/
 
-# Logs
-logs/
-*.log
-
-# Runtime data
-data/*.csv
-data/*.xlsx
-output/
-*.tmp
-*.temp
-
-# Cache
+# Python cache and compiled files
 __pycache__/
 *.pyc
 *.pyo
-.cache/
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Node.js
+node_modules/
+package-lock.json
+yarn.lock
+
+# Testing and coverage
 .pytest_cache/
-.mypy_cache/
-.ruff_cache/
-coverage/
+.coverage
+.coverage.*
+htmlcov/
+cover/
+
+# Logs and temporary files
+logs/
+*.log
+tmp/
+temp/
+*.tmp
+*.temp
 
 # OS files
 .DS_Store
 Thumbs.db
+*.swp
+*.swo
+*~
 
-# Project-specific (round metadata)
+# Project specific (score.json is round metadata, not project)
+data/outputs/
+reports/test_run/
+reports/output/
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# Score and round metadata (not project files)
 score.json

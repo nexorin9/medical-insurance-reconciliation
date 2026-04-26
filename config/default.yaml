@@ -1,0 +1,20 @@
+# 医保对账差异归因系统 - 默认配置文件
+# 用法: python -m src.cli reconcile --config config/default.yaml
+
+# ===== 文件路径 =====
+his_file: data/sample_his.csv
+insurance_file: data/sample_insurance.csv
+
+# ===== 输出配置 =====
+output_dir: reports/output
+
+# ===== 筛选配置 =====
+# filter_type: 规格型号差  # 可选值: 规格型号差, 数量差, 单价差, 项目对照差, 其他
+
+# ===== 输出选项 =====
+verbose: false
+export_json: false
+
+# ===== 字段映射配置 =====
+field_mapping_his: config/field_mapping_his.yaml
+field_mapping_insurance: config/field_mapping_insurance.yaml

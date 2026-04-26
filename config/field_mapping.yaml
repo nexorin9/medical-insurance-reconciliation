@@ -1,0 +1,59 @@
+# HIS字段与医保平台字段映射配置
+# 用于医保对账差异归因系统
+# 目标：统一两边数据到共同规范字段名
+
+field_mappings:
+  # 通用映射字段 - 统一到规范字段名
+  his_to_insurance:
+    # 就诊信息
+    "就诊流水号": "visit_serial_no"
+    "住院号": "patient_id"
+    "患者姓名": "patient_name"
+    # 项目信息
+    "项目代码": "item_code"
+    "项目编码": "item_code"
+    "项目名称": "item_name"
+    # 规格/数量/单价/金额
+    "规格型号": "spec_model"
+    "规格": "spec_model"
+    "数量": "quantity"
+    "单价": "unit_price"
+    "金额": "total_amount"
+    "金额": "amount"
+    # 科室/医生
+    "开单科室": "dept_code"
+    "执行科室": "exec_dept_code"
+    "医生姓名": "doctor_name"
+    "结算日期": "settlement_date"
+    # 医疗机构
+    "医疗机构代码": "medical_inst_code"
+
+  # 字段别名（兼容不同医院的字段命名差异）
+  field_aliases:
+    "visit_serial_no": ["serial_no", "flow_id", "visit_id", "JZLSH"]
+    "patient_id": ["patient_id", "inpatient_no", "hospital_no"]
+    "item_code": ["item_code", "charge_code", "code", "XMBM"]
+    "item_name": ["item_name", "charge_name", "name", "XMMC"]
+    "quantity": ["quantity", "qty", "num", "amount", "SL"]
+    "unit_price": ["unit_price", "price", "unit", "DJ"]
+    "total_amount": ["total_amount", "amount", "money", "JE", "金额"]
+    "spec_model": ["spec_model", "specification", "GGXH", "规格型号", "规格"]
+
+# 归因规则配置
+attribution_rules:
+  # 差异类型优先级
+  priority:
+    - "specification_diff"   # 规格型号差
+    - "quantity_diff"        # 数量差
+    - "unit_price_diff"      # 单价差
+    - "item_mapping_diff"     # 项目对照差
+    - "other"                # 其他
+
+  # 判断阈值
+  thresholds:
+    # 数量差异容差（允许误差）
+    quantity_tolerance: 0.01
+    # 单价差异容差（元）
+    unit_price_tolerance: 0.01
+    # 金额差异容差（元）
+    amount_tolerance: 0.01

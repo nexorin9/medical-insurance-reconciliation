@@ -1,0 +1,63 @@
+# 医保平台字段映射配置
+# 用于医保对账差异归因系统
+# 将医保平台字段映射到规范字段名
+
+field_mappings:
+  # 医保平台字段 → 规范字段名
+  insurance_fields:
+    # 就诊信息
+    "visit_serial_no": "visit_serial_no"
+    "serial_no": "visit_serial_no"
+    "flow_id": "visit_serial_no"
+    "visit_id": "visit_serial_no"
+    "patient_id": "patient_id"
+    "patient_name": "patient_name"
+    # 项目信息
+    "item_code": "item_code"
+    "charge_code": "item_code"
+    "item_name": "item_name"
+    "charge_name": "item_name"
+    # 规格/数量/单价/金额
+    "spec_model": "spec_model"
+    "specification": "spec_model"
+    "quantity": "quantity"
+    "qty": "quantity"
+    "unit_price": "unit_price"
+    "price": "unit_price"
+    "total_amount": "total_amount"
+    "amount": "total_amount"
+    # 科室/医生
+    "dept_code": "dept_code"
+    "exec_dept_code": "exec_dept_code"
+    "doctor_name": "doctor_name"
+    "settlement_date": "settlement_date"
+    # 医疗机构
+    "medical_inst_code": "medical_inst_code"
+    "medical_institution_code": "medical_inst_code"
+
+  # 字段别名（兼容不同医保平台的字段命名差异）
+  field_aliases:
+    "visit_serial_no": ["serial_no", "flow_id", "visit_id", "JZLSH"]
+    "patient_id": ["patient_id", "inpatient_no", "hospital_no"]
+    "item_code": ["item_code", "charge_code", "code", "XMBM"]
+    "item_name": ["item_name", "charge_name", "name", "XMMC"]
+    "quantity": ["quantity", "qty", "num", "amount", "SL"]
+    "unit_price": ["unit_price", "price", "unit", "DJ"]
+    "total_amount": ["total_amount", "amount", "money", "JE", "金额"]
+    "spec_model": ["spec_model", "specification", "GGXH", "规格型号", "规格"]
+
+canonical_fields:
+  - "visit_serial_no"
+  - "patient_id"
+  - "patient_name"
+  - "item_code"
+  - "item_name"
+  - "spec_model"
+  - "quantity"
+  - "unit_price"
+  - "total_amount"
+  - "dept_code"
+  - "exec_dept_code"
+  - "doctor_name"
+  - "settlement_date"
+  - "medical_inst_code"
